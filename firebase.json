@@ -1,0 +1,16 @@
+{
+  "apphosting": [
+    {
+      "backendId": "f3-database-compare-tool",
+      "region": "us-east4",
+      "rootDir": "/",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "functions"
+      ]
+    }
+  ]
+}

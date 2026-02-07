@@ -1,0 +1,26 @@
+# Settings for Backend (on Cloud Run).
+runConfig:
+  minInstances: 1
+  memoryMiB: 2048
+  # maxInstances: 100
+  # concurrency: 80
+  # cpu: 1
+
+env:
+  - variable: DATABASE_URL_GCP
+    secret: database-url-gcp
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: DATABASE_URL_NEON
+    secret: database-url-neon
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: DATABASE_URL_SUPABASE
+    secret: database-url-supabase
+    availability:
+      - BUILD
+      - RUNTIME

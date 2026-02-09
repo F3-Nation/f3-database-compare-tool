@@ -16,6 +16,11 @@ export function HealthIndicator({ status, className }: HealthIndicatorProps) {
         status === "loading" && "bg-yellow-400 animate-pulse",
         className,
       )}
+      style={
+        status === "healthy"
+          ? { animation: "pulse-dot 2s ease-in-out infinite" }
+          : undefined
+      }
     />
   );
 }

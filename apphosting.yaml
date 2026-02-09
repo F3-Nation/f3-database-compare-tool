@@ -24,3 +24,19 @@ env:
     availability:
       - BUILD
       - RUNTIME
+
+  - variable: DATABASE_URL_METADATA
+    secret: database-url-metadata
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: APP_ENVIRONMENT
+    value: firebase
+    availability:
+      - RUNTIME
+
+  - variable: CRON_SECRET
+    secret: cron-secret
+    availability:
+      - RUNTIME

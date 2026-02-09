@@ -192,6 +192,16 @@ load_environment_variables() {
             current_value="$value_part"
             in_multiline=true
           fi
+        elif [[ "$value_part" =~ ^\' ]]; then
+          value_part="${value_part#\'}"
+
+          if [[ "$value_part" =~ \'$ ]]; then
+            current_value="${value_part%\'}"
+            export "$current_var=$current_value"
+          else
+            current_value="$value_part"
+            in_multiline=true
+          fi
         else
           export "$current_var=$value_part"
         fi
@@ -200,6 +210,11 @@ load_environment_variables() {
       if [[ "$line" =~ \"$ ]]; then
         current_value="$current_value
 ${line%\"}"
+        export "$current_var=$current_value"
+        in_multiline=false
+      elif [[ "$line" =~ \'$ ]]; then
+        current_value="$current_value
+${line%\'}"
         export "$current_var=$current_value"
         in_multiline=false
       else

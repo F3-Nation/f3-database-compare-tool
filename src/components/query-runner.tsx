@@ -21,7 +21,7 @@ function highlightSql(sql: string) {
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
-  const regex = new RegExp(SQL_KEYWORDS.source, "g");
+  const regex = new RegExp(SQL_KEYWORDS.source, "gi");
   while ((match = regex.exec(sql)) !== null) {
     if (match.index > lastIndex) {
       parts.push({ text: sql.slice(lastIndex, match.index), isKeyword: false });

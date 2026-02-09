@@ -147,10 +147,10 @@ export function Dashboard() {
 
   const handleRunQuery = async (sql: string) => {
     if (!leftId || !rightId) return;
-    await comparison.compareData(leftId, rightId, sql);
+    const result = await comparison.compareData(leftId, rightId, sql);
 
-    if (comparison.dataResult) {
-      setPerformanceResults((prev) => [...prev, comparison.dataResult!]);
+    if (result) {
+      setPerformanceResults((prev) => [...prev, result]);
       const matchingPreset = PRESET_QUERIES.find((q) => q.sql === sql);
       setQueryNames((prev) => [
         ...prev,

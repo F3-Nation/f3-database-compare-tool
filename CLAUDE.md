@@ -15,22 +15,27 @@ npm run lint             # ESLint (--max-warnings 0)
 npm run typecheck        # TypeScript strict check
 npm run test             # Vitest (9 tests)
 npm run test:coverage    # Vitest with v8 coverage
-npm run docker:up        # Start local Postgres 16 on :5433
-npm run docker:down      # Stop local Postgres
+npm run db:up            # Start local Postgres 16 on :5433
+npm run db:down          # Stop local Postgres
 npm run db:pull:dump     # tsx script: pull schema + data from GCP
-npm run db:push:schema:local  # Apply schema.sql to local Docker
-npm run db:push:data:local    # Apply data.sql to local Docker
+npm run db:reset:<target>     # Drop all + re-migrate + seed (local/neon/supabase, NEVER gcp)
+npm run db:migrate:<target>   # Apply schema.sql (local/neon/supabase)
+npm run db:seed:<target>      # Apply data.sql (local/neon/supabase)
 npm run db:verify:local       # Health check local Docker
 npm run db:verify:gcp         # Health check GCP
 npm run db:verify:neon        # Health check Neon
 npm run db:verify:supabase    # Health check Supabase
+npm run db:generate           # Drizzle generate migrations
+npm run db:migrate:metadata   # Push schema to metadata DB
+npm run db:studio             # Drizzle Studio GUI
 ```
 
 ## Stack
 
 - Next.js 15, React 19, App Router, TypeScript strict
 - shadcn/ui + Tailwind v3 + Recharts
-- Raw `pg` Pool per platform (no ORM at runtime)
+- Raw `pg` Pool per platform (no ORM for comparison queries)
+- Drizzle ORM for metadata DB (latency analytics)
 - Docker Postgres 16 on :5433, app on :3002
 
 ## Plugin System
@@ -48,10 +53,12 @@ npm run db:verify:supabase    # Health check Supabase
 - `POST /api/query` — {platformId, sql} -> QueryResult
 - `POST /api/compare` — {leftId, rightId, sql} -> side-by-side
 - `POST /api/compare/schema` — {leftId, rightId} -> schema diff
+- `POST /api/cron/latency` — Collect health snapshots (QStash target)
+- `GET /api/analytics/latency` — Query latency history + stats
 
 ## Env Variables
 
-`DATABASE_URL_GCP`, `DATABASE_URL_LOCAL`, `DATABASE_URL_NEON`, `DATABASE_URL_SUPABASE`
+`DATABASE_URL_GCP`, `DATABASE_URL_LOCAL`, `DATABASE_URL_NEON`, `DATABASE_URL_SUPABASE`, `DATABASE_URL_METADATA`, `APP_ENVIRONMENT`, `CRON_SECRET`
 
 ## Database Stats (GCP Source)
 

@@ -4,12 +4,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DUMPS_DIR="$PROJECT_ROOT/dumps"
-DATA_FILE="$DUMPS_DIR/data.sql"
+SCHEMA_FILE="$DUMPS_DIR/schema.sql"
 
 TARGET="${1:-}"
 
 if [[ -z "$TARGET" ]]; then
-  echo "Usage: db-push-data.sh <target>"
+  echo "Usage: db-migrate.sh <target>"
   echo "Targets: local, neon, supabase"
   exit 1
 fi
@@ -43,11 +43,11 @@ if [[ -z "$DB_URL" ]]; then
   exit 1
 fi
 
-if [[ ! -f "$DATA_FILE" ]]; then
-  echo "ERROR: $DATA_FILE not found. Run 'npm run db:pull:dump' first."
+if [[ ! -f "$SCHEMA_FILE" ]]; then
+  echo "ERROR: $SCHEMA_FILE not found. Run 'npm run db:pull:dump' first."
   exit 1
 fi
 
-echo "Pushing data to $TARGET..."
-psql "$DB_URL" -f "$DATA_FILE"
-echo "Data pushed to $TARGET successfully."
+echo "Pushing schema to $TARGET..."
+psql "$DB_URL" -f "$SCHEMA_FILE"
+echo "Schema pushed to $TARGET successfully."

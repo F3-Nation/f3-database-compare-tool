@@ -1,9 +1,13 @@
+import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
+
+config({ path: ".env.local" });
 
 export default defineConfig({
   dialect: "postgresql",
+  schema: "./src/lib/db/schema.ts",
   dbCredentials: {
-    url: process.env.DATABASE_URL_GCP!,
+    url: process.env.DATABASE_URL_METADATA!,
   },
   out: "./drizzle",
 });

@@ -9,8 +9,8 @@ if [[ -f "$HOME/google-cloud-sdk/path.bash.inc" ]]; then
 fi
 
 # Configuration constants
-SECRET_VARS=("DATABASE_URL_GCP" "DATABASE_URL_NEON" "DATABASE_URL_SUPABASE")
-SECRET_IDS=("database-url-gcp" "database-url-neon" "database-url-supabase")
+SECRET_VARS=("DATABASE_URL_GCP" "DATABASE_URL_NEON" "DATABASE_URL_SUPABASE" "DATABASE_URL_METADATA" "CRON_SECRET")
+SECRET_IDS=("database-url-gcp" "database-url-neon" "database-url-supabase" "database-url-metadata" "cron-secret")
 
 #####################################
 # MAIN EXECUTION FUNCTION

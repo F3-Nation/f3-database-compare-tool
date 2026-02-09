@@ -47,35 +47,47 @@ export async function GET(request: NextRequest) {
     conditions.push(eq(latencySnapshots.platformId, platformId));
   }
 
-  const db = getDb();
-  const rows = await db
-    .select()
-    .from(latencySnapshots)
-    .where(and(...conditions))
-    .orderBy(desc(latencySnapshots.createdAt))
-    .limit(2000);
+  try {
+    const db = getDb();
+    const rows = await db
+      .select({
+        platformId: latencySnapshots.platformId,
+        latencyMs: latencySnapshots.latencyMs,
+        ok: latencySnapshots.ok,
+        createdAt: latencySnapshots.createdAt,
+      })
+      .from(latencySnapshots)
+      .where(and(...conditions))
+      .orderBy(desc(latencySnapshots.createdAt))
+      .limit(2000);
 
-  const byPlatform = new Map<string, number[]>();
-  for (const row of rows) {
-    const existing = byPlatform.get(row.platformId) || [];
-    existing.push(row.latencyMs);
-    byPlatform.set(row.platformId, existing);
+    const byPlatform = new Map<string, number[]>();
+    for (const row of rows) {
+      const existing = byPlatform.get(row.platformId) || [];
+      existing.push(row.latencyMs);
+      byPlatform.set(row.platformId, existing);
+    }
+
+    const stats: Record<
+      string,
+      ReturnType<typeof computeStats> & { count: number }
+    > = {};
+    for (const [pid, values] of byPlatform) {
+      stats[pid] = { ...computeStats(values), count: values.length };
+    }
+
+    return NextResponse.json({
+      timeRange,
+      environment: environment || "all",
+      platformId: platformId || "all",
+      count: rows.length,
+      stats,
+      snapshots: rows,
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to query latency analytics" },
+      { status: 500 },
+    );
   }
-
-  const stats: Record<
-    string,
-    ReturnType<typeof computeStats> & { count: number }
-  > = {};
-  for (const [pid, values] of byPlatform) {
-    stats[pid] = { ...computeStats(values), count: values.length };
-  }
-
-  return NextResponse.json({
-    timeRange,
-    environment: environment || "all",
-    platformId: platformId || "all",
-    count: rows.length,
-    stats,
-    snapshots: rows,
-  });
 }

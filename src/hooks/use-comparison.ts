@@ -44,7 +44,11 @@ export function useComparison() {
     useState<SchemaComparisonResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function compareData(leftId: string, rightId: string, sql: string) {
+  async function compareData(
+    leftId: string,
+    rightId: string,
+    sql: string,
+  ): Promise<ComparisonResult | null> {
     setLoading(true);
     setError(null);
     try {
@@ -56,11 +60,13 @@ export function useComparison() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Comparison failed");
-        return;
+        return null;
       }
       setDataResult(data);
+      return data as ComparisonResult;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Comparison failed");
+      return null;
     } finally {
       setLoading(false);
     }

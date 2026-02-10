@@ -9,6 +9,7 @@ import {
   ComparisonResult,
   SchemaComparisonResult,
 } from "@/hooks/use-comparison";
+import type { LatencyAnalyticsState } from "@/hooks/use-latency-analytics";
 import { Database, Layers, BarChart3 } from "lucide-react";
 
 interface ComparisonPanelProps {
@@ -16,6 +17,7 @@ interface ComparisonPanelProps {
   dataResult: ComparisonResult | null;
   performanceResults: ComparisonResult[];
   queryNames: string[];
+  analyticsState: LatencyAnalyticsState;
 }
 
 export function ComparisonPanel({
@@ -23,6 +25,7 @@ export function ComparisonPanel({
   dataResult,
   performanceResults,
   queryNames,
+  analyticsState,
 }: ComparisonPanelProps) {
   return (
     <Tabs defaultValue="data" className="w-full">
@@ -73,7 +76,7 @@ export function ComparisonPanel({
       </TabsContent>
 
       <TabsContent value="analytics">
-        <LatencyAnalytics />
+        <LatencyAnalytics analyticsState={analyticsState} />
       </TabsContent>
     </Tabs>
   );

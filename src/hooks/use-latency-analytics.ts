@@ -82,3 +82,5 @@ export function useLatencyAnalytics() {
     refresh: fetch_,
   };
 }
+
+export type LatencyAnalyticsState = ReturnType<typeof useLatencyAnalytics>;

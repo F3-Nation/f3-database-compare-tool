@@ -3,15 +3,17 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { usePlatforms, PlatformStatus } from "@/hooks/use-platforms";
 import { useComparison, ComparisonResult } from "@/hooks/use-comparison";
+import { useLatencyAnalytics } from "@/hooks/use-latency-analytics";
 import { QueryRunner } from "./query-runner";
 import { ComparisonPanel } from "./comparison-panel";
-import { HealthIndicator } from "./health-indicator";
+import { CompactConnectionStatus } from "./compact-connection-status";
+import { LatencyChart } from "./latency-chart";
+import { LatencyStatsRow } from "./latency-stats-row";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { formatMs } from "@/lib/utils";
-import { RefreshCw } from "lucide-react";
+import { Activity, Loader2, RefreshCw } from "lucide-react";
 import { PRESET_QUERIES } from "@/lib/queries";
+import { TIME_RANGES, Pill, buildChartData } from "@/lib/latency-constants";
 
 function useTickingCounter(resetKey: number) {
   const [count, setCount] = useState(0);
@@ -82,12 +84,6 @@ function HealthBanner({
   );
 }
 
-function latencyColor(ms: number): string {
-  if (ms < 150) return "text-green-600";
-  if (ms < 300) return "text-amber-600";
-  return "text-red-600";
-}
-
 export function Dashboard() {
   const {
     platforms,
@@ -96,6 +92,7 @@ export function Dashboard() {
     refresh,
   } = usePlatforms();
   const comparison = useComparison();
+  const analyticsState = useLatencyAnalytics();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [leftId, setLeftId] = useState("");
@@ -108,7 +105,8 @@ export function Dashboard() {
   const handleRefresh = useCallback(() => {
     setRefreshKey((k) => k + 1);
     refresh();
-  }, [refresh]);
+    analyticsState.refresh();
+  }, [refresh, analyticsState]);
 
   // Auto-select first two configured platforms (render-time, matching original pattern)
   const handlePlatformsReady = useCallback(() => {
@@ -123,26 +121,16 @@ export function Dashboard() {
   }
 
   // Compute fastest platform
-  const { fastestId, relativeLatency } = useMemo(() => {
+  const fastestId = useMemo(() => {
     const healthyPlatforms = platforms.filter(
       (p) => p.configured && p.health?.ok && p.health.latencyMs,
     );
-    if (healthyPlatforms.length === 0)
-      return { fastestId: null, relativeLatency: {} as Record<string, number> };
+    if (healthyPlatforms.length === 0) return null;
 
     const sorted = [...healthyPlatforms].sort(
       (a, b) => a.health!.latencyMs - b.health!.latencyMs,
     );
-    const fastest = sorted[0];
-    const rl: Record<string, number> = {};
-    for (const p of healthyPlatforms) {
-      if (p.id !== fastest.id) {
-        rl[p.id] =
-          Math.round((p.health!.latencyMs / fastest.health!.latencyMs) * 10) /
-          10;
-      }
-    }
-    return { fastestId: fastest.id, relativeLatency: rl };
+    return sorted[0].id;
   }, [platforms]);
 
   const handleRunQuery = async (sql: string) => {
@@ -182,6 +170,14 @@ export function Dashboard() {
 
   const bothSelected = !!leftId && !!rightId;
 
+  // Hero chart data
+  const heroChartData = analyticsState.data
+    ? buildChartData(analyticsState.data.snapshots, analyticsState.timeRange)
+    : [];
+  const heroPlatformIds = analyticsState.data
+    ? Object.keys(analyticsState.data.stats)
+    : [];
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -213,69 +209,78 @@ export function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 space-y-10">
-        {/* Platform Status Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {platforms.map((p) => (
-            <Card
-              key={p.id}
-              className="bg-white shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_8px_16px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200"
-            >
-              <CardHeader className="py-4 px-5">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm">{p.name}</CardTitle>
-                  <HealthIndicator
-                    status={
-                      platformsLoading
-                        ? "loading"
-                        : !p.configured
-                          ? "unconfigured"
-                          : p.health?.ok
-                            ? "healthy"
-                            : "unhealthy"
-                    }
-                  />
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 space-y-6">
+        {/* Compact Connection Status */}
+        <CompactConnectionStatus
+          platforms={platforms}
+          fastestId={fastestId}
+          loading={platformsLoading}
+        />
+
+        {/* Hero Latency Chart */}
+        {analyticsState.loading && !analyticsState.data && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
+        {analyticsState.error && !analyticsState.data && (
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="py-3 px-6">
+              <p className="text-sm text-red-600">{analyticsState.error}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {!analyticsState.loading &&
+          !analyticsState.error &&
+          analyticsState.data &&
+          analyticsState.data.count === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <Activity className="h-10 w-10 text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">
+                No latency data yet
+              </p>
+              <p className="text-xs text-muted-foreground/60">
+                Data will appear after the cron job runs (POST
+                /api/cron/latency)
+              </p>
+            </div>
+          )}
+
+        {analyticsState.data && analyticsState.data.count > 0 && (
+          <>
+            <Card className="bg-white">
+              <CardHeader className="py-3 px-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <CardTitle className="text-sm">
+                    Latency Over Time (ms)
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    {TIME_RANGES.map((tr) => (
+                      <Pill
+                        key={tr}
+                        label={tr}
+                        active={analyticsState.timeRange === tr}
+                        onClick={() => analyticsState.setTimeRange(tr)}
+                      />
+                    ))}
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent className="px-5 pb-4">
-                {!p.configured ? (
-                  <p className="text-xs text-muted-foreground">
-                    Not configured
-                  </p>
-                ) : p.health?.ok ? (
-                  <div className="space-y-1.5">
-                    <Badge variant="success" className="text-[10px]">
-                      Connected
-                    </Badge>
-                    <p
-                      className={`text-lg font-semibold ${latencyColor(p.health.latencyMs)}`}
-                    >
-                      {formatMs(p.health.latencyMs)}
-                    </p>
-                    {fastestId === p.id ? (
-                      <Badge className="bg-accent-brand text-white text-[10px]">
-                        Fastest
-                      </Badge>
-                    ) : relativeLatency[p.id] ? (
-                      <span className="text-[10px] text-muted-foreground">
-                        {relativeLatency[p.id]}x slower
-                      </span>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    <Badge variant="destructive" className="text-[10px]">
-                      Error
-                    </Badge>
-                    <p className="text-xs text-red-600 truncate">
-                      {p.health?.error}
-                    </p>
-                  </div>
-                )}
+              <CardContent className="px-4 pb-3">
+                <LatencyChart
+                  chartData={heroChartData}
+                  platformIds={heroPlatformIds}
+                  height={400}
+                />
               </CardContent>
             </Card>
-          ))}
-        </div>
+
+            {/* P95 Stats Row */}
+            <LatencyStatsRow stats={analyticsState.data.stats} />
+          </>
+        )}
 
         {/* Platform Pill Selector */}
         <Card className="bg-white">
@@ -360,6 +365,7 @@ export function Dashboard() {
           dataResult={comparison.dataResult}
           performanceResults={performanceResults}
           queryNames={queryNames}
+          analyticsState={analyticsState}
         />
       </main>
     </div>

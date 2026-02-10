@@ -64,7 +64,7 @@ export function QueryRunner({ onRun, loading, disabled }: QueryRunnerProps) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         {/* Segmented control */}
         <div className="relative inline-flex bg-muted rounded-lg p-0.5">
           <div
@@ -100,7 +100,7 @@ export function QueryRunner({ onRun, loading, disabled }: QueryRunnerProps) {
 
         {mode === "preset" && (
           <Select value={selectedQueryId} onValueChange={setSelectedQueryId}>
-            <SelectTrigger className="w-[300px]">
+            <SelectTrigger className="w-full sm:w-[300px] min-w-0">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

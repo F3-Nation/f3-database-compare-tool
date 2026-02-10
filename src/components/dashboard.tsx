@@ -76,7 +76,7 @@ function HealthBanner({
         : "bg-red-50 text-red-700 border-red-100";
 
   return (
-    <div className={`text-xs py-1.5 px-6 border-b ${bgClass}`}>
+    <div className={`text-xs py-1.5 px-3 sm:px-6 border-b ${bgClass}`}>
       {label} &middot; Last refresh: {elapsed}s ago
     </div>
   );
@@ -187,7 +187,7 @@ export function Dashboard() {
       {/* Header */}
       <header className="bg-white sticky top-0 z-10 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
         <HealthBanner platforms={platforms} refreshKey={refreshKey} />
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
@@ -213,7 +213,7 @@ export function Dashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-6 space-y-10">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 space-y-10">
         {/* Platform Status Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {platforms.map((p) => (
@@ -279,7 +279,7 @@ export function Dashboard() {
 
         {/* Platform Pill Selector */}
         <Card className="bg-white">
-          <CardContent className="py-4 px-6">
+          <CardContent className="py-4 px-3 sm:px-6">
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider mr-1">
                 Compare
@@ -316,7 +316,7 @@ export function Dashboard() {
                   </button>
                 );
               })}
-              <div className="ml-auto">
+              <div className="sm:ml-auto">
                 <Button
                   variant="outline"
                   size="sm"
@@ -333,10 +333,10 @@ export function Dashboard() {
 
         {/* Query Runner */}
         <Card className="bg-white">
-          <CardHeader className="py-3 px-6">
+          <CardHeader className="py-3 px-3 sm:px-6">
             <CardTitle className="text-sm">Query</CardTitle>
           </CardHeader>
-          <CardContent className="px-6 pb-4">
+          <CardContent className="px-3 sm:px-6 pb-4">
             <QueryRunner
               onRun={handleRunQuery}
               loading={comparison.loading}

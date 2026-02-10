@@ -33,11 +33,24 @@ export function DataDiff({ result }: DataDiffProps) {
         otherRowCount={result.left.rowCount}
       />
       {!rowCountMatch && (
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 space-y-1">
           <Badge variant="warning">
             Row count mismatch: {result.left.name} ({result.left.rowCount}) vs{" "}
             {result.right.name} ({result.right.rowCount})
           </Badge>
+          {(result.left.rowCount === 0 || result.right.rowCount === 0) && (
+            <p className="text-xs text-muted-foreground">
+              {result.left.rowCount === 0
+                ? result.left.name
+                : result.right.name}{" "}
+              returned 0 rows — this platform may be empty or not synced. Check
+              connectivity and run{" "}
+              <code className="bg-muted px-1 rounded text-[11px]">
+                npm run db:sync:&lt;target&gt;
+              </code>{" "}
+              to populate it.
+            </p>
+          )}
         </div>
       )}
     </div>

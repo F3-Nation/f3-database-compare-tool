@@ -43,10 +43,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const [leftSchema, rightSchema] = await Promise.all([
-    left.getSchema(),
-    right.getSchema(),
-  ]);
+  let leftSchema, rightSchema;
+  try {
+    [leftSchema, rightSchema] = await Promise.all([
+      left.getSchema(),
+      right.getSchema(),
+    ]);
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Schema fetch failed" },
+      { status: 500 },
+    );
+  }
 
   // Build diff
   const leftTableMap = new Map(

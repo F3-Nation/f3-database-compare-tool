@@ -4,12 +4,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SchemaDiff } from "./schema-diff";
 import { DataDiff } from "./data-diff";
 import { PerformanceChart } from "./performance-chart";
-import { LatencyAnalytics } from "./latency-analytics";
 import {
   ComparisonResult,
   SchemaComparisonResult,
 } from "@/hooks/use-comparison";
-import type { LatencyAnalyticsState } from "@/hooks/use-latency-analytics";
 import { Database, Layers, BarChart3 } from "lucide-react";
 
 interface ComparisonPanelProps {
@@ -17,7 +15,8 @@ interface ComparisonPanelProps {
   dataResult: ComparisonResult | null;
   performanceResults: ComparisonResult[];
   queryNames: string[];
-  analyticsState: LatencyAnalyticsState;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
 }
 
 export function ComparisonPanel({
@@ -25,15 +24,15 @@ export function ComparisonPanel({
   dataResult,
   performanceResults,
   queryNames,
-  analyticsState,
+  activeTab,
+  onTabChange,
 }: ComparisonPanelProps) {
   return (
-    <Tabs defaultValue="data" className="w-full">
+    <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
       <TabsList>
         <TabsTrigger value="data">Data Compare</TabsTrigger>
         <TabsTrigger value="schema">Schema Compare</TabsTrigger>
         <TabsTrigger value="performance">Performance</TabsTrigger>
-        <TabsTrigger value="analytics">Analytics</TabsTrigger>
       </TabsList>
 
       <TabsContent value="data">
@@ -73,10 +72,6 @@ export function ComparisonPanel({
             hint="Each query you run will be added to the performance chart"
           />
         )}
-      </TabsContent>
-
-      <TabsContent value="analytics">
-        <LatencyAnalytics analyticsState={analyticsState} />
       </TabsContent>
     </Tabs>
   );

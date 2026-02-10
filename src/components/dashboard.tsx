@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { usePlatforms, PlatformStatus } from "@/hooks/use-platforms";
 import { useComparison, ComparisonResult } from "@/hooks/use-comparison";
 import { useLatencyAnalytics } from "@/hooks/use-latency-analytics";
+import { useReadiness } from "@/hooks/use-readiness";
 import { QueryRunner } from "./query-runner";
 import { ComparisonPanel } from "./comparison-panel";
 import { CompactConnectionStatus } from "./compact-connection-status";
@@ -11,7 +12,7 @@ import { LatencyChart } from "./latency-chart";
 import { LatencyStatsRow } from "./latency-stats-row";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Loader2, RefreshCw } from "lucide-react";
+import { Activity, AlertTriangle, Loader2, RefreshCw } from "lucide-react";
 import { PRESET_QUERIES } from "@/lib/queries";
 import { TIME_RANGES, Pill, buildChartData } from "@/lib/latency-constants";
 
@@ -93,10 +94,12 @@ export function Dashboard() {
   } = usePlatforms();
   const comparison = useComparison();
   const analyticsState = useLatencyAnalytics();
+  const { readiness, refresh: refreshReadiness } = useReadiness();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [leftId, setLeftId] = useState("");
   const [rightId, setRightId] = useState("");
+  const [activeTab, setActiveTab] = useState("data");
   const [performanceResults, setPerformanceResults] = useState<
     ComparisonResult[]
   >([]);
@@ -106,7 +109,8 @@ export function Dashboard() {
     setRefreshKey((k) => k + 1);
     refresh();
     analyticsState.refresh();
-  }, [refresh, analyticsState]);
+    refreshReadiness();
+  }, [refresh, analyticsState, refreshReadiness]);
 
   // Auto-select first two configured platforms (render-time, matching original pattern)
   const handlePlatformsReady = useCallback(() => {
@@ -144,12 +148,14 @@ export function Dashboard() {
         ...prev,
         matchingPreset?.name || "Custom Query",
       ]);
+      setActiveTab("data");
     }
   };
 
   const handleCompareSchema = async () => {
     if (!leftId || !rightId) return;
     await comparison.compareSchema(leftId, rightId);
+    setActiveTab("schema");
   };
 
   // Pill selector: tap to toggle selection
@@ -293,13 +299,18 @@ export function Dashboard() {
                 const isLeft = leftId === p.id;
                 const isRight = rightId === p.id;
                 const isSelected = isLeft || isRight;
+                const platformReady = readiness.find(
+                  (r) => r.platformId === p.id,
+                );
+                const notReady =
+                  platformReady && !platformReady.ready && p.configured;
                 return (
                   <button
                     key={p.id}
                     type="button"
                     disabled={!p.configured}
                     onClick={() => handlePillClick(p.id)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border ${
+                    className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border ${
                       isSelected
                         ? "bg-accent-brand text-white border-accent-brand"
                         : p.configured
@@ -307,6 +318,9 @@ export function Dashboard() {
                           : "bg-muted text-muted-foreground border-border opacity-50 cursor-not-allowed"
                     }`}
                   >
+                    {notReady && (
+                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-amber-400 border border-white" />
+                    )}
                     {isLeft && (
                       <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-white/20 text-[10px] font-bold">
                         L
@@ -335,6 +349,34 @@ export function Dashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Readiness Warnings */}
+        {readiness
+          .filter((r) => {
+            const isSelected =
+              r.platformId === leftId || r.platformId === rightId;
+            return isSelected && !r.ready;
+          })
+          .map((r) => (
+            <Card key={r.platformId} className="border-amber-200 bg-amber-50">
+              <CardContent className="py-3 px-6 flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-amber-700 font-medium">
+                    {r.name} appears empty or not synced
+                  </p>
+                  <p className="text-xs text-amber-600 mt-0.5">
+                    {r.tableCount} tables, {r.sampleRowCount} rows in users
+                    table. Run{" "}
+                    <code className="bg-amber-100 px-1 rounded text-[11px]">
+                      npm run db:sync:{r.platformId}
+                    </code>{" "}
+                    to populate from GCP source.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
 
         {/* Query Runner */}
         <Card className="bg-white">
@@ -365,7 +407,8 @@ export function Dashboard() {
           dataResult={comparison.dataResult}
           performanceResults={performanceResults}
           queryNames={queryNames}
-          analyticsState={analyticsState}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
         />
       </main>
     </div>

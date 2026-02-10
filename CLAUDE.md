@@ -25,6 +25,10 @@ npm run db:verify:local       # Health check local Docker
 npm run db:verify:gcp         # Health check GCP
 npm run db:verify:neon        # Health check Neon
 npm run db:verify:supabase    # Health check Supabase
+npm run db:sync:local         # Reset + migrate + seed local from dumps
+npm run db:sync:neon          # Reset + migrate + seed Neon from dumps
+npm run db:sync:supabase      # Reset + migrate + seed Supabase from dumps
+npm run db:sync:all           # Sync all targets sequentially
 npm run db:generate           # Drizzle generate migrations
 npm run db:migrate:metadata   # Push schema to metadata DB
 npm run db:studio             # Drizzle Studio GUI
@@ -55,6 +59,7 @@ npm run db:studio             # Drizzle Studio GUI
 - `POST /api/compare/schema` — {leftId, rightId} -> schema diff
 - `POST /api/cron/latency` — Collect health snapshots (QStash target)
 - `GET /api/analytics/latency` — Query latency history + stats
+- `GET /api/readiness` — Platform readiness (table count, sample rows, ready flag)
 
 ## Env Variables
 
@@ -80,3 +85,4 @@ npm run db:studio             # Drizzle Studio GUI
 - `architecture.md` — Key patterns, env vars, API routes
 - `status.md` — Phase progress tracker
 - `pax-vault-patterns.md` — Patterns borrowed from PAX-VAULT
+- `sync-and-readiness.md` — Sync scripts + readiness API docs

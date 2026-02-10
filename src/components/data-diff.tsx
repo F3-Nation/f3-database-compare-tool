@@ -21,7 +21,7 @@ export function DataDiff({ result }: DataDiffProps) {
   const rowCountMatch = result.left.rowCount === result.right.rowCount;
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <ResultPanel
         label={result.left.name}
         data={result.left}
@@ -33,7 +33,7 @@ export function DataDiff({ result }: DataDiffProps) {
         otherRowCount={result.left.rowCount}
       />
       {!rowCountMatch && (
-        <div className="col-span-2">
+        <div className="md:col-span-2">
           <Badge variant="warning">
             Row count mismatch: {result.left.name} ({result.left.rowCount}) vs{" "}
             {result.right.name} ({result.right.rowCount})
@@ -86,7 +86,7 @@ function ResultPanel({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-3 overflow-auto max-h-96">
+      <CardContent className="px-4 pb-3 overflow-auto max-h-96 min-w-0">
         <Table>
           <TableHeader>
             <TableRow>

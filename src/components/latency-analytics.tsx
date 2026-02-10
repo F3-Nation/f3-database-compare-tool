@@ -115,8 +115,8 @@ export function LatencyAnalytics() {
       {/* Filter Bar */}
       <Card className="bg-white">
         <CardContent className="py-4 px-6">
-          <div className="flex flex-wrap items-center gap-6">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Time
               </span>
@@ -129,7 +129,7 @@ export function LatencyAnalytics() {
                 />
               ))}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Env
               </span>
@@ -148,7 +148,7 @@ export function LatencyAnalytics() {
                 />
               ))}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Platform
               </span>

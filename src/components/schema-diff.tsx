@@ -33,8 +33,8 @@ export function SchemaDiff({ result }: SchemaDiffProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex gap-4 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
           <span>
             <strong>{result.left.name}</strong>: {result.left.tableCount} tables
             ({formatMs(result.left.latencyMs)})
